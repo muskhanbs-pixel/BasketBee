@@ -20,8 +20,18 @@ class Settings(BaseSettings):
     app_name: str = "BasketBee"
     # Absolute path, so the DB is found no matter which folder you run from
     database_url: str = f"sqlite:///{(PROJECT_ROOT / 'basketbee.db').as_posix()}"
-    llm_provider: str = "ollama"
+    llm_provider: str = "ollama"          # ollama | openai | gemini
     llm_model: str = "llama3.2"
+    llm_temperature: float = 0.0
+    ollama_base_url: str = "http://localhost:11434"
+    ollama_num_ctx: int = 8192             # context window; Ollama's default may be only 2048
+    openai_api_key: str | None = None
+    openai_base_url: str | None = None     # e.g. https://api.groq.com/openai/v1 for Groq
+    google_api_key: str | None = None
+    # How agent tools reach the mock ERP/WMS/TMS:
+    #   inprocess = call the API inside Python (no uvicorn needed, great for dev)
+    #   http      = real HTTP calls to the running server at api_base_url
+    tools_transport: str = "inprocess"
     # Where the tools find the mock ERP/WMS/TMS (the running FastAPI server)
     api_base_url: str = "http://127.0.0.1:8000"
     # "Today" in the BasketBee story - the last day of sales history

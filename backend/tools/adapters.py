@@ -51,8 +51,28 @@ class BaseAdapter:
             raise AdapterError(code, message)
         return r.json()
 
+    def _post(self, path: str, body: dict) -> dict:
+        try:
+            r = self.client.post(path, json=body)
+        except httpx.HTTPError:
+            raise AdapterError("UPSTREAM_DOWN",
+                               f"Could not reach BasketBee API at {settings.api_base_url}. Is uvicorn running?")
+        if r.status_code >= 400:
+            detail = r.json().get("detail", {}) if r.headers.get("content-type", "").startswith("application/json") else {}
+            if isinstance(detail, dict):
+                raise AdapterError(detail.get("code", "INVALID"), detail.get("message", r.text))
+            raise AdapterError("INVALID", str(detail))
+        return r.json()
+
 
 class ERPAdapter(BaseAdapter):
+    def create_purchase_order(self, recommendation_id: int, supplier_id: str, warehouse_id: str,
+                              sku: str, qty: int, approved_by: str) -> dict:
+        return self._post("/erp/purchase-orders", {
+            "recommendation_id": recommendation_id, "supplier_id": supplier_id,
+            "warehouse_id": warehouse_id, "sku": sku, "qty": qty, "approved_by": approved_by,
+        })
+
     def product(self, sku: str) -> dict:
         return self._get(f"/erp/products/{sku}")
 
