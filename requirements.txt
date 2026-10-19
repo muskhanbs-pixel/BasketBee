@@ -1,0 +1,16 @@
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+sqlalchemy
+pandas
+numpy
+scikit-learn
+langchain
+langchain-ollama
+langgraph
+streamlit
+requests
+python-dotenv
+pytest
+httpx
