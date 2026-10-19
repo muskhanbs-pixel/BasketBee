@@ -1,0 +1,19 @@
+vehicle_id,warehouse_id,type,capacity_kg,status
+VH-01,WH-SOUTH,EV 3-wheeler,350,maintenance
+VH-02,WH-SOUTH,EV 3-wheeler,350,available
+VH-03,WH-SOUTH,Mini truck,1200,available
+VH-04,WH-SOUTH,Mini truck,1200,available
+VH-05,WH-SOUTH,Light truck,3000,available
+VH-06,WH-SOUTH,Light truck,3000,available
+VH-07,WH-NORTH,EV 3-wheeler,350,available
+VH-08,WH-NORTH,EV 3-wheeler,350,available
+VH-09,WH-NORTH,Mini truck,1200,available
+VH-10,WH-NORTH,Mini truck,1200,available
+VH-11,WH-NORTH,Light truck,3000,available
+VH-12,WH-NORTH,Light truck,3000,maintenance
+VH-13,WH-EAST,EV 3-wheeler,350,available
+VH-14,WH-EAST,EV 3-wheeler,350,available
+VH-15,WH-EAST,Mini truck,1200,available
+VH-16,WH-EAST,Mini truck,1200,available
+VH-17,WH-EAST,Light truck,3000,available
+VH-18,WH-EAST,Light truck,3000,available

@@ -1,0 +1,61 @@
+sku,name,category,pack_size,unit_cost_inr,selling_price_inr,shelf_life_days,base_daily_demand,supplier_id,holding_cost_pct_per_year,order_cost_inr,case_pack
+DAI-001,Toned Milk,Dairy,500 ml,24,28,3,900,SUP-01,0.4,500,24
+DAI-002,Full Cream Milk,Dairy,500 ml,30,34,3,450,SUP-01,0.4,500,24
+DAI-003,Curd,Dairy,400 g,30,35,7,380,SUP-01,0.4,500,24
+DAI-004,Paneer,Dairy,200 g,75,90,10,160,SUP-01,0.4,500,12
+DAI-005,Butter,Dairy,100 g,48,56,120,140,SUP-01,0.2,500,12
+DAI-006,Ghee,Dairy,500 ml,290,330,270,70,SUP-01,0.2,500,6
+DAI-007,Cheese Slices,Dairy,200 g,120,140,90,60,SUP-01,0.2,500,6
+DAI-008,Buttermilk,Dairy,200 ml,12,15,5,300,SUP-01,0.4,500,24
+FNV-001,Onion,Fruits & Vegetables,1 kg,30,40,20,520,SUP-02,0.2,500,24
+FNV-002,Tomato,Fruits & Vegetables,1 kg,25,36,6,480,SUP-02,0.4,500,24
+FNV-003,Potato,Fruits & Vegetables,1 kg,24,32,25,450,SUP-02,0.2,500,24
+FNV-004,Banana (Robusta),Fruits & Vegetables,1 dozen,40,55,5,300,SUP-02,0.4,500,24
+FNV-005,Apple (Shimla),Fruits & Vegetables,1 kg,140,180,20,120,SUP-02,0.2,500,12
+FNV-006,Coriander Leaves,Fruits & Vegetables,100 g,6,10,3,350,SUP-02,0.4,500,24
+FNV-007,Green Chilli,Fruits & Vegetables,100 g,6,10,7,280,SUP-02,0.4,500,12
+FNV-008,Lemon,Fruits & Vegetables,250 g,18,25,14,200,SUP-02,0.4,500,12
+FNV-009,Carrot,Fruits & Vegetables,500 g,22,30,10,180,SUP-02,0.4,500,12
+FNV-010,Coconut,Fruits & Vegetables,1 pc,28,38,30,220,SUP-02,0.2,500,12
+STP-001,Sona Masoori Rice,Staples,5 kg,290,340,365,160,SUP-03,0.2,500,12
+STP-002,Basmati Rice,Staples,1 kg,110,135,365,110,SUP-03,0.2,500,12
+STP-003,Whole Wheat Atta,Staples,5 kg,210,250,180,140,SUP-03,0.2,500,12
+STP-004,Toor Dal,Staples,1 kg,140,165,270,180,SUP-08,0.2,500,12
+STP-005,Moong Dal,Staples,1 kg,120,145,270,90,SUP-08,0.2,500,6
+STP-006,Sugar,Staples,1 kg,42,48,365,260,SUP-03,0.2,500,12
+STP-007,Iodised Salt,Staples,1 kg,20,25,730,150,SUP-03,0.2,500,12
+STP-008,Sunflower Oil,Staples,1 L,130,155,270,220,SUP-08,0.2,500,12
+STP-009,Groundnut Oil,Staples,1 L,170,200,270,80,SUP-08,0.2,500,6
+STP-010,Besan (Gram Flour),Staples,500 g,45,55,180,90,SUP-08,0.2,500,6
+STP-011,Rava (Semolina),Staples,500 g,30,38,180,110,SUP-03,0.2,500,12
+STP-012,Poha,Staples,500 g,35,42,180,100,SUP-03,0.2,500,12
+SNK-001,Potato Chips,Snacks & Sweets,90 g,32,40,120,260,SUP-04,0.2,500,12
+SNK-002,Namkeen Mixture,Snacks & Sweets,400 g,75,95,120,140,SUP-04,0.2,500,12
+SNK-003,Cream Biscuits,Snacks & Sweets,150 g,25,30,180,300,SUP-04,0.2,500,24
+SNK-004,Dry Fruits Mix,Snacks & Sweets,250 g,260,320,180,45,SUP-04,0.2,500,6
+SNK-005,Cashew Nuts,Snacks & Sweets,250 g,230,285,180,50,SUP-04,0.2,500,6
+SNK-006,Gulab Jamun Tin,Snacks & Sweets,1 kg,170,210,270,25,SUP-04,0.2,500,6
+SNK-007,Milk Chocolate Bar,Snacks & Sweets,50 g,40,50,270,200,SUP-04,0.2,500,12
+SNK-008,Soan Papdi,Snacks & Sweets,500 g,110,140,120,20,SUP-04,0.2,500,6
+SNK-009,Instant Noodles,Snacks & Sweets,4-pack,48,56,270,280,SUP-04,0.2,500,12
+SNK-010,Rusk,Snacks & Sweets,300 g,38,45,120,130,SUP-04,0.2,500,12
+BEV-001,Filter Coffee Powder,Beverages,500 g,240,290,270,90,SUP-05,0.2,500,6
+BEV-002,Tea Leaves,Beverages,500 g,230,275,365,120,SUP-05,0.2,500,12
+BEV-003,Packaged Drinking Water,Beverages,1 L,15,20,180,420,SUP-05,0.2,500,24
+BEV-004,Cola Soft Drink,Beverages,750 ml,35,40,180,200,SUP-05,0.2,500,12
+BEV-005,Mango Fruit Drink,Beverages,1 L,75,90,180,110,SUP-05,0.2,500,12
+BEV-006,Health Drink Powder,Beverages,500 g,230,270,365,60,SUP-05,0.2,500,6
+BEV-007,Tender Coconut Water,Beverages,200 ml,30,40,60,140,SUP-05,0.2,500,12
+BEV-008,Energy Drink,Beverages,250 ml,95,115,365,70,SUP-05,0.2,500,6
+HHC-001,Detergent Powder,Household,1 kg,110,130,730,130,SUP-06,0.2,500,12
+HHC-002,Dishwash Liquid,Household,500 ml,95,115,730,120,SUP-06,0.2,500,12
+HHC-003,Floor Cleaner,Household,1 L,160,195,730,70,SUP-06,0.2,500,6
+HHC-004,Toilet Cleaner,Household,500 ml,85,100,730,65,SUP-06,0.2,500,6
+HHC-005,Garbage Bags,Household,30 pcs,90,110,1095,80,SUP-06,0.2,500,6
+HHC-006,Agarbatti,Household,100 sticks,45,60,730,90,SUP-06,0.2,500,6
+HHC-007,Diya Oil Lamps,Household,12 pcs,60,80,1095,10,SUP-06,0.2,500,6
+PRC-001,Bath Soap,Personal Care,4 x 100 g,140,170,730,150,SUP-07,0.2,500,12
+PRC-002,Shampoo,Personal Care,340 ml,210,250,730,70,SUP-07,0.2,500,6
+PRC-003,Toothpaste,Personal Care,150 g,85,100,730,140,SUP-07,0.2,500,12
+PRC-004,Coconut Hair Oil,Personal Care,250 ml,95,115,730,90,SUP-07,0.2,500,6
+PRC-005,Hand Wash,Personal Care,200 ml,80,99,730,75,SUP-07,0.2,500,6

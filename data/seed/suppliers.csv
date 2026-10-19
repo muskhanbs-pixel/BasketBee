@@ -1,0 +1,9 @@
+supplier_id,name,category,lead_time_days,on_time_rate,defect_rate
+SUP-01,Kaveri Fresh Dairy,Dairy,1,0.96,0.01
+SUP-02,Deccan Farm Produce,Fruits & Vegetables,1,0.9,0.03
+SUP-03,Malnad Staples Traders,Staples,4,0.93,0.008
+SUP-04,Sahyadri Snacks,Snacks & Sweets,3,0.88,0.012
+SUP-05,Coastal Beverages Co,Beverages,3,0.94,0.006
+SUP-06,Mysore Home Care,Household,5,0.91,0.005
+SUP-07,Nilgiri Personal Care,Personal Care,5,0.95,0.004
+SUP-08,Tungabhadra Agro Mills,Staples,6,0.82,0.015
