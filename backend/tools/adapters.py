@@ -56,6 +56,18 @@ class ERPAdapter(BaseAdapter):
     def product(self, sku: str) -> dict:
         return self._get(f"/erp/products/{sku}")
 
+    def products(self, category: str | None = None) -> pd.DataFrame:
+        return pd.DataFrame(self._get("/erp/products", category=category))
+
+    def suppliers(self) -> pd.DataFrame:
+        return pd.DataFrame(self._get("/erp/suppliers"))
+
+    def warehouse_sales(self, warehouse_id: str) -> pd.DataFrame:
+        """All products' daily sales for one warehouse in a single call (fast bulk load)."""
+        df = pd.DataFrame(self._get("/erp/orders", warehouse_id=warehouse_id, limit=50000))
+        df["date"] = pd.to_datetime(df["date"])
+        return df[["date", "sku", "units_sold"]]
+
     def sales_history(self, sku: str, warehouse_id: str) -> pd.DataFrame:
         rows = self._get("/erp/orders", sku=sku, warehouse_id=warehouse_id, limit=50000)
         df = pd.DataFrame(rows)
@@ -71,5 +83,8 @@ class ERPAdapter(BaseAdapter):
 
 
 class WMSAdapter(BaseAdapter):
-    def stock(self, sku: str | None = None, warehouse_id: str | None = None) -> list[dict]:
-        return self._get("/wms/stock", sku=sku, warehouse_id=warehouse_id)
+    def stock(self, sku: str | None = None, warehouse_id: str | None = None) -> pd.DataFrame:
+        return pd.DataFrame(self._get("/wms/stock", sku=sku, warehouse_id=warehouse_id))
+
+    def warehouses(self) -> pd.DataFrame:
+        return pd.DataFrame(self._get("/wms/warehouses"))

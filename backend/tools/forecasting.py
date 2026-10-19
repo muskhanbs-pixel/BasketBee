@@ -123,19 +123,37 @@ def wape(actual, predicted) -> float:
     return float(100 * np.sum(np.abs(actual - predicted)) / total) if total > 0 else float("nan")
 
 
-def _fit_predict(history: pd.DataFrame, future_dates: pd.DatetimeIndex, festivals: pd.DataFrame) -> np.ndarray:
-    t0 = history["date"].min()
-    X_train = make_features(pd.DatetimeIndex(history["date"]), festivals, t0)
-    X_future = make_features(future_dates, festivals, t0)
+_feature_cache: dict[tuple, tuple[pd.DataFrame, pd.DataFrame]] = {}
+
+
+def _features_for(history: pd.DataFrame, future_dates: pd.DatetimeIndex, festivals: pd.DataFrame):
+    """Most products share the same dates, so build each feature table only once."""
+    dates = pd.DatetimeIndex(history["date"])
+    key = (dates[0], dates[-1], len(dates), future_dates[0], len(future_dates),
+           tuple(festivals["date"].astype(str)))
+    if key not in _feature_cache:
+        t0 = dates[0]
+        _feature_cache[key] = (make_features(dates, festivals, t0), make_features(future_dates, festivals, t0))
+    return _feature_cache[key]
+
+
+def _fit_predict(history: pd.DataFrame, future_dates: pd.DatetimeIndex, festivals: pd.DataFrame,
+                 mode: str = "ensemble") -> np.ndarray:
+    """mode='ensemble' (accurate, ~0.5s) or 'ridge' (fast, ~0.01s - used for quick screening)."""
+    X_train, X_future = _features_for(history, future_dates, festivals)
     y_train = np.log1p(history["units_sold"].values)
+
+    ridge = Ridge(alpha=1.0).fit(linear_features(X_train), y_train)
+    ridge_pred = np.expm1(ridge.predict(linear_features(X_future)))
+    if mode == "ridge":
+        return np.clip(ridge_pred, 0, None)
 
     # min_samples_leaf is small on purpose: each festival only gives ~8 days a year
     gbm = HistGradientBoostingRegressor(max_iter=300, learning_rate=0.05, max_leaf_nodes=15,
                                         min_samples_leaf=3, random_state=0)
     gbm.fit(X_train, y_train)
-    ridge = Ridge(alpha=1.0).fit(linear_features(X_train), y_train)
 
-    pred = 0.5 * np.expm1(gbm.predict(X_future)) + 0.5 * np.expm1(ridge.predict(linear_features(X_future)))
+    pred = 0.5 * np.expm1(gbm.predict(X_future)) + 0.5 * ridge_pred
     return np.clip(pred, 0, None)
 
 
