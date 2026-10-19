@@ -15,10 +15,10 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from backend.api.common import api_error, check_available
-from backend.api.schemas import (ProductOut, PurchaseOrderIn, PurchaseOrderOut,
+from backend.api.schemas import (FestivalOut, ProductOut, PurchaseOrderIn, PurchaseOrderOut,
                                  SalesRecord, SupplierOut)
 from backend.db.database import get_db
-from backend.db.models import (Inventory, Product, PurchaseOrder, Recommendation,
+from backend.db.models import (Festival, Inventory, Product, PurchaseOrder, Recommendation,
                                SalesHistory, Supplier, Warehouse)
 
 router = APIRouter(prefix="/erp", tags=["ERP (mock)"], dependencies=[Depends(check_available("erp"))])
@@ -87,6 +87,13 @@ def sales_history(
         q = q.where(SalesHistory.date <= date_to)
     q = q.order_by(SalesHistory.date).limit(limit)
     return db.scalars(q).all()
+
+
+# ----- Business calendar -----------------------------------------------------
+@router.get("/festivals", response_model=list[FestivalOut])
+def list_festivals(db: Session = Depends(get_db)):
+    """Festival calendar - the Forecast agent uses it to anticipate demand spikes."""
+    return db.scalars(select(Festival).order_by(Festival.date)).all()
 
 
 # ----- Purchase orders -------------------------------------------------------

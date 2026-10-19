@@ -54,6 +54,12 @@ class SalesRecord(ORMModel):
     revenue_inr: float
 
 
+class FestivalOut(ORMModel):
+    festival: str
+    date: date
+    window_days: int
+
+
 class PurchaseOrderIn(BaseModel):
     recommendation_id: int = Field(..., description="Must point to an APPROVED recommendation")
     supplier_id: str

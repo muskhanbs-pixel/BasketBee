@@ -22,6 +22,10 @@ class Settings(BaseSettings):
     database_url: str = f"sqlite:///{(PROJECT_ROOT / 'basketbee.db').as_posix()}"
     llm_provider: str = "ollama"
     llm_model: str = "llama3.2"
+    # Where the tools find the mock ERP/WMS/TMS (the running FastAPI server)
+    api_base_url: str = "http://127.0.0.1:8000"
+    # "Today" in the BasketBee story - the last day of sales history
+    business_date: str = "2026-10-18"
 
     model_config = SettingsConfigDict(
         env_file=PROJECT_ROOT / ".env",
