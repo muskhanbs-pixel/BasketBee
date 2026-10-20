@@ -32,6 +32,9 @@ class Settings(BaseSettings):
     #   inprocess = call the API inside Python (no uvicorn needed, great for dev)
     #   http      = real HTTP calls to the running server at api_base_url
     tools_transport: str = "inprocess"
+    # Pre-compute forecasts in the background when the API starts (dashboard opens fast)
+    warmup_on_startup: bool = True
+    festival_date: str = "2026-11-08"     # next big festival (Diwali) shown in the app
     # Where the tools find the mock ERP/WMS/TMS (the running FastAPI server)
     api_base_url: str = "http://127.0.0.1:8000"
     # "Today" in the BasketBee story - the last day of sales history

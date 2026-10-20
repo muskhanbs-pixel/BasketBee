@@ -1,0 +1,40 @@
+# BasketBee theme - colours sampled from the logo
+#   hive green  #1F4A33  (the "BasketBee" lettering)
+#   honey       #FFBB02  (the bee's stripes)
+#   amber       #9A6412  (the tagline)
+
+[theme]
+base = "light"
+primaryColor = "#1F4A33"
+backgroundColor = "#F5F6F0"
+secondaryBackgroundColor = "#ECEEE5"
+textColor = "#18261E"
+linkColor = "#1F4A33"
+borderColor = "#DCE0D3"
+dataframeBorderColor = "#E3E6DB"
+dataframeHeaderBackgroundColor = "#EEF0E8"
+showWidgetBorder = true
+baseRadius = "10px"
+buttonRadius = "10px"
+redColor = "#C2362F"
+orangeColor = "#D9730D"
+yellowColor = "#B88A00"
+greenColor = "#2E7D4F"
+font = "Figtree:https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap, sans-serif"
+headingFont = "Bricolage Grotesque:https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&display=swap, sans-serif"
+headingFontWeights = [750, 700, 650, 600, 600, 600]
+chartCategoricalColors = ["#1F4A33", "#FFBB02", "#9A6412", "#7FA88A", "#C2362F"]
+
+[theme.sidebar]
+backgroundColor = "#1F4A33"
+secondaryBackgroundColor = "#28583E"
+textColor = "#EEF3EA"
+primaryColor = "#FFBB02"
+borderColor = "#2F6447"
+linkColor = "#FFD666"
+
+[client]
+toolbarMode = "minimal"
+
+[browser]
+gatherUsageStats = false

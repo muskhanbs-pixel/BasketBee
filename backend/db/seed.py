@@ -43,18 +43,21 @@ def load_csv(name: str, date_cols: list[str] | None) -> pd.DataFrame:
     return df
 
 
-def seed() -> None:
+def seed(target=None, verbose: bool = True) -> None:
+    """Load the CSVs into `target` (an SQLAlchemy engine); default = the app's database."""
+    target = target or engine
+    log = print if verbose else (lambda *a, **k: None)
     start = time.perf_counter()
-    print("Resetting tables...")
-    Base.metadata.drop_all(engine)
-    Base.metadata.create_all(engine)
+    log("Resetting tables...")
+    Base.metadata.drop_all(target)
+    Base.metadata.create_all(target)
 
     for name, date_cols in LOAD_ORDER:
         df = load_csv(name, date_cols)
-        df.to_sql(name, engine, if_exists="append", index=False, chunksize=10_000)
-        print(f"  loaded {name:<15} {len(df):>8,} rows")
+        df.to_sql(name, target, if_exists="append", index=False, chunksize=10_000)
+        log(f"  loaded {name:<15} {len(df):>8,} rows")
 
-    print(f"Done in {time.perf_counter() - start:.1f}s -> {engine.url}")
+    log(f"Done in {time.perf_counter() - start:.1f}s -> {target.url}")
 
 
 if __name__ == "__main__":

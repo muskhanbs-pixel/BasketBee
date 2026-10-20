@@ -42,9 +42,9 @@ rng = np.random.default_rng(SEED)
 # ---------------------------------------------------------------------------
 WAREHOUSES = [
     # id, name, area, lat, lon, capacity_units, demand_share
-    ("WH-SOUTH", "BasketBee South Hub", "Electronic City", 12.8452, 77.6602, 60000, 0.40),
-    ("WH-NORTH", "BasketBee North Hub", "Yelahanka", 13.1007, 77.5963, 45000, 0.30),
-    ("WH-EAST", "BasketBee East Hub", "Hoskote", 13.0707, 77.7982, 45000, 0.30),
+    ("WH-SOUTH", "BasketBee South Hub", "Electronic City", 12.8452, 77.6602, 80000, 0.40),
+    ("WH-NORTH", "BasketBee North Hub", "Yelahanka", 13.1007, 77.5963, 60000, 0.30),
+    ("WH-EAST", "BasketBee East Hub", "Hoskote", 13.0707, 77.7982, 60000, 0.30),
 ]
 
 # ---------------------------------------------------------------------------

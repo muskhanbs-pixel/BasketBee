@@ -16,19 +16,16 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from backend.api.common import _outages
-from backend.core.config import PROJECT_ROOT
+
 from backend.db.database import get_db
 from backend.db.models import Recommendation
 from backend.main import app
 
 
 @pytest.fixture(scope="module")
-def client(tmp_path_factory):
-    real_db = PROJECT_ROOT / "basketbee.db"
-    if not real_db.exists():
-        pytest.skip("Run `python -m backend.db.seed` first")
+def client(tmp_path_factory, pristine_db):
     test_db = tmp_path_factory.mktemp("db") / "test.db"
-    shutil.copy(real_db, test_db)
+    shutil.copy(pristine_db, test_db)     # fresh seed data, never your real database
 
     engine = create_engine(f"sqlite:///{test_db.as_posix()}", connect_args={"check_same_thread": False})
     TestSession = sessionmaker(bind=engine, autoflush=False)
@@ -40,11 +37,12 @@ def client(tmp_path_factory):
         finally:
             db.close()
 
+    previous = app.dependency_overrides.get(get_db)
     app.dependency_overrides[get_db] = override_get_db
     with TestClient(app) as c:
         c.TestSession = TestSession      # handy for inserting test rows
         yield c
-    app.dependency_overrides.clear()
+    app.dependency_overrides[get_db] = previous
     engine.dispose()
 
 

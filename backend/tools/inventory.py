@@ -267,7 +267,9 @@ def check_inventory(req: InventoryCheckRequest, erp: ERPAdapter | None = None,
     stock = stock[stock["sku"].isin(products.index) & stock["warehouse_id"].isin(wh_ids)]
     sales = sales[sales["date"] <= today]
     max_lead = int(suppliers["lead_time_days"].max())
-    n_days = req.horizon_days + max_lead + REVIEW_DAYS
+    # Always forecast the longest window (60 days) so ONE cached forecast serves every horizon
+    # the dashboard or the agents ask for.
+    n_days = 60 + max_lead + REVIEW_DAYS
     future = pd.date_range(today + timedelta(days=1), periods=n_days, freq="D")
     grouped = {k: g.sort_values("date") for k, g in sales.groupby(["warehouse_id", "sku"])}
 

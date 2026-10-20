@@ -85,6 +85,18 @@ DATE_RE = re.compile(r"\b\d{4}-\d{2}-\d{2}\b")
 NUM_RE = re.compile(r"(?<![\w.])\d[\d,]*(?:\.\d+)?")
 
 
+def inr(value: float) -> str:
+    """Indian digit grouping: 917412 -> ₹9,17,412"""
+    s = str(int(round(value)))
+    if len(s) > 3:
+        head, tail, groups = s[:-3], s[-3:], []
+        while len(head) > 2:
+            groups.insert(0, head[-2:])
+            head = head[:-2]
+        s = ",".join(([head] if head else []) + groups) + "," + tail
+    return f"₹{s}"
+
+
 def _numbers_in(text: str) -> list[float]:
     return [float(n.replace(",", "")) for n in NUM_RE.findall(DATE_RE.sub(" ", text))]
 
@@ -229,7 +241,7 @@ class BasketBeeSupervisor:
             total = sum(r["value_inr"] for r in state["recommendations"])
             n = len(state["recommendations"])
             body += (f"\n\n{n} reorder recommendation{'s are' if n > 1 else ' is'} waiting for your "
-                     f"approval (total INR {total:,.0f}). Nothing is ordered until you approve.")
+                     f"approval (total {inr(total)}). Nothing is ordered until you approve.")
         if not verification["verified"]:
             body += ("\n\nNote: I couldn't verify these figures against the system data, so please "
                      f"double-check them: {', '.join(verification['unverified'])}.")
