@@ -24,7 +24,9 @@ class Settings(BaseSettings):
     llm_model: str = "llama3.2"
     llm_temperature: float = 0.0
     ollama_base_url: str = "http://localhost:11434"
-    ollama_num_ctx: int = 8192             # context window; Ollama's default may be only 2048
+    # Context window. Ollama's default can be 2048 (too small for our prompts);
+    # 8192 needs ~1 GB more RAM. 4096 fits BasketBee's prompts with room to spare.
+    ollama_num_ctx: int = 4096
     openai_api_key: str | None = None
     openai_base_url: str | None = None     # e.g. https://api.groq.com/openai/v1 for Groq
     google_api_key: str | None = None
