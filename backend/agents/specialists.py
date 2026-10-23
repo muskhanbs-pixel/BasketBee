@@ -1,3 +1,4 @@
+
 """
 BasketBee - specialist agents (M3 + M4 agent layer).
 
@@ -144,7 +145,8 @@ def run_agent(agent, question: str, max_steps: int = 8,
                 output = json.loads(m.content)
             except (json.JSONDecodeError, TypeError):
                 output = m.content
-            step["ok"] = not (isinstance(output, dict) and "error" in output)
+            step["ok"] = not ((isinstance(output, dict) and "error" in output)
+                              or (isinstance(output, str) and output.startswith("Error")))
             step["output"] = output
             trace.append(step)
 

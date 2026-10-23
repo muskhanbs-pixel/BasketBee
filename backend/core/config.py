@@ -1,3 +1,4 @@
+
 """
 BasketBee - central configuration.
 
@@ -20,13 +21,14 @@ class Settings(BaseSettings):
     app_name: str = "BasketBee"
     # Absolute path, so the DB is found no matter which folder you run from
     database_url: str = f"sqlite:///{(PROJECT_ROOT / 'basketbee.db').as_posix()}"
-    llm_provider: str = "ollama"          # ollama | openai | gemini
+    llm_provider: str = "ollama"          # ollama | groq | openai | gemini
     llm_model: str = "llama3.2"
     llm_temperature: float = 0.0
     ollama_base_url: str = "http://localhost:11434"
     # Context window. Ollama's default can be 2048 (too small for our prompts);
     # 8192 needs ~1 GB more RAM. 4096 fits BasketBee's prompts with room to spare.
     ollama_num_ctx: int = 4096
+    groq_api_key: str | None = None        # free key from console.groq.com
     openai_api_key: str | None = None
     openai_base_url: str | None = None     # e.g. https://api.groq.com/openai/v1 for Groq
     google_api_key: str | None = None

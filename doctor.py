@@ -1,3 +1,4 @@
+
 """
 BasketBee doctor - checks every part of the system and says exactly what to fix.
 
@@ -79,6 +80,31 @@ else:
         except httpx.HTTPError:
             fail(f"Ollama is NOT running at {settings.ollama_base_url}",
                  "open the Ollama app from the Start menu (or run  ollama serve  in a new terminal)")
+    elif settings.llm_provider == "groq":
+        try:
+            import langchain_openai  # noqa: F401
+        except ImportError:
+            fail("Groq needs the langchain-openai package", "python -m pip install langchain-openai")
+        if not settings.groq_api_key:
+            fail("LLM_PROVIDER=groq but GROQ_API_KEY is empty",
+                 "get a free key at console.groq.com and add GROQ_API_KEY=... to .env")
+        else:
+            try:
+                r = httpx.get("https://api.groq.com/openai/v1/models", timeout=10,
+                              headers={"Authorization": f"Bearer {settings.groq_api_key}"})
+                if r.status_code == 401:
+                    fail("Groq rejected the API key", "copy the key again from console.groq.com into .env")
+                elif r.status_code == 200:
+                    ids = {m["id"] for m in r.json().get("data", [])}
+                    if model in ids:
+                        print(f"{OK} Groq key works and model '{model}' is available")
+                    else:
+                        fail(f"Groq doesn't offer '{model}'",
+                             "set LLM_MODEL to one of: " + ", ".join(sorted(i for i in ids if "whisper" not in i)[:8]))
+                else:
+                    fail(f"Groq answered HTTP {r.status_code}", "try again in a minute (rate limit?)")
+            except httpx.HTTPError:
+                fail("can't reach api.groq.com", "check your internet connection")
     elif settings.llm_provider == "openai" and not settings.openai_api_key:
         fail("LLM_PROVIDER=openai but OPENAI_API_KEY is empty", "add OPENAI_API_KEY=... to .env")
     elif settings.llm_provider == "gemini" and not settings.google_api_key:
@@ -102,8 +128,11 @@ else:
                       f"Agents still work (BasketBee rescues text tool calls), but a bigger model is better.")
         except Exception as e:  # noqa: BLE001
             text = str(e)
-            if any(w in text for w in ("bad_alloc", "out of memory", "requires more system memory",
-                                       "unable to allocate")):
+            if any(w in text.lower() for w in ("does not exist", "model_not_found", "decommissioned")):
+                fail(f"{settings.llm_provider} doesn't offer the model '{model}' (it may have been retired)",
+                     "for Groq set  LLM_MODEL=openai/gpt-oss-120b  in .env (list: console.groq.com/docs/models)")
+            elif any(w in text for w in ("bad_alloc", "out of memory", "requires more system memory",
+                                         "unable to allocate")):
                 fail("not enough free RAM to load the model",
                      "close Chrome/other apps and quit+reopen Ollama; or set OLLAMA_NUM_CTX=4096 in .env; "
                      "or use a smaller model: ollama pull llama3.2  then LLM_MODEL=llama3.2 in .env")

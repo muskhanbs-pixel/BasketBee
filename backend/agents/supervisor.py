@@ -1,3 +1,4 @@
+
 """
 BasketBee - the Supervisor (M5): the "queen bee" that runs the hive.
 
@@ -173,8 +174,20 @@ class BasketBeeSupervisor:
             self._emit("agent_start", {"agent": name})
             history = [m for m in state["messages"][:-1] if isinstance(m, (HumanMessage, AIMessage))][-4:]
             started = time.perf_counter()
-            out = run_agent(self.agents[name], state["question"], history=history,
-                            on_event=lambda k, d: self._emit(k, {**d, "agent": name}))
+            try:
+                out = run_agent(self.agents[name], state["question"], history=history,
+                                on_event=lambda k, d: self._emit(k, {**d, "agent": name}))
+            except Exception as exc:   # noqa: BLE001
+                # Safety net: one agent's mistake must never crash the whole answer.
+                from backend.api.app_api import is_llm_fatal
+                if is_llm_fatal(exc):
+                    raise   # the model itself is unavailable: the API shows a clear message
+                msg = f"{type(exc).__name__}: {str(exc)[:200]}"
+                self._audit(state["session_id"], f"{name}_agent", "error", {"question": state["question"]},
+                            {"error": msg})
+                out = {"answer": f"The {AGENT_TITLES[name].lower()} step hit a problem and was skipped "
+                                 f"({msg.splitlines()[0][:120]}). Try asking again, or rephrase the question.",
+                       "trace": [], "repairs": 0, "seconds": round(time.perf_counter() - started, 1)}
             run = {"agent": name, "answer": out["answer"], "trace": out["trace"],
                    "repairs": out["repairs"], "seconds": out["seconds"]}
             for step in out["trace"]:

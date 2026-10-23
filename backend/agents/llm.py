@@ -5,6 +5,9 @@ One function, get_llm(), returns the chat model configured in .env.
 Switching providers needs NO code change:
 
     LLM_PROVIDER=ollama   LLM_MODEL=llama3.1:8b        (free, local, offline demo)
+    LLM_PROVIDER=groq     LLM_MODEL=openai/gpt-oss-120b   GROQ_API_KEY=...  (free, fast cloud)
+    (Groq retires models often: llama-3.3-70b-versatile left the free tier on 16 Aug 2026.
+     Current list: console.groq.com/docs/models)
     LLM_PROVIDER=openai   LLM_MODEL=gpt-4o-mini        OPENAI_API_KEY=...
     LLM_PROVIDER=gemini   LLM_MODEL=gemini-2.0-flash   GOOGLE_API_KEY=...
 
@@ -35,6 +38,21 @@ def get_llm(model: str | None = None, temperature: float | None = None) -> BaseC
             keep_alive="30m",                  # keep the model loaded between questions
         )
 
+    if provider == "groq":
+        # Groq: free cloud API, very fast. OpenAI-compatible, so we reuse ChatOpenAI.
+        try:
+            from langchain_openai import ChatOpenAI
+        except ImportError as e:
+            raise LLMConfigError("Run: pip install langchain-openai") from e
+        if not settings.groq_api_key:
+            raise LLMConfigError("Set GROQ_API_KEY in .env (free key from console.groq.com)")
+        extra = {}
+        if "gpt-oss" in model:
+            # Reasoning model: "low" effort = fewer tokens (free tier allows 8,000/min) and faster answers
+            extra["reasoning_effort"] = "low"
+        return ChatOpenAI(model=model, temperature=temperature, api_key=settings.groq_api_key,
+                          base_url="https://api.groq.com/openai/v1", timeout=60, max_retries=3, **extra)
+
     if provider == "openai":
         # Also works for any OpenAI-compatible API (e.g. Groq) via OPENAI_BASE_URL
         try:
@@ -56,4 +74,4 @@ def get_llm(model: str | None = None, temperature: float | None = None) -> BaseC
         return ChatGoogleGenerativeAI(model=model, temperature=temperature,
                                       google_api_key=settings.google_api_key)
 
-    raise LLMConfigError(f"Unknown LLM_PROVIDER '{settings.llm_provider}' (use ollama, openai or gemini)")
+    raise LLMConfigError(f"Unknown LLM_PROVIDER '{settings.llm_provider}' (use ollama, groq, openai or gemini)")

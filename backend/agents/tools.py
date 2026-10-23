@@ -1,3 +1,4 @@
+
 """
 BasketBee - the tools the AI agents are allowed to use.
 
@@ -10,7 +11,9 @@ Design rules (they matter a lot with small local LLMs):
   4. NUMBERS COME FROM HERE - the LLM explains these numbers; it never calculates its own.
 """
 
+import ast
 import difflib
+import json
 from functools import lru_cache
 
 from langchain_core.tools import tool
@@ -116,6 +119,39 @@ def _error(code: str, message: str) -> dict:
     return {"error": code, "message": message}
 
 
+def as_list(value) -> list[str] | None:
+    """Small models send lists in many shapes. Accept them all:
+    ['ghee', 'dal']  |  "['ghee', 'dal']"  |  '["ghee", "dal"]'  |  "ghee, dal"  |  "ghee" """
+    if value is None:
+        return None
+    if isinstance(value, (list, tuple)):
+        items = [str(v) for v in value]
+    else:
+        text = str(value).strip()
+        if text.lower() in ("", "none", "null", "all", "[]"):
+            return None
+        if text.startswith("["):
+            try:
+                parsed = json.loads(text)
+            except json.JSONDecodeError:
+                try:
+                    parsed = ast.literal_eval(text)
+                except (ValueError, SyntaxError):
+                    parsed = text.strip("[]").split(",")
+            items = [str(v) for v in (parsed if isinstance(parsed, (list, tuple)) else [parsed])]
+        else:
+            items = text.split(",")
+    items = [i.strip().strip("'\"") for i in items]
+    return [i for i in items if i] or None
+
+
+def as_int(value, default: int) -> int:
+    try:
+        return int(float(str(value).strip()))
+    except (TypeError, ValueError):
+        return default
+
+
 # ---------------------------------------------------------------------------
 # Tools
 # ---------------------------------------------------------------------------
@@ -162,7 +198,7 @@ def get_stock_level(product: str, warehouse: str | None = None) -> dict:
 
 
 @tool
-def forecast_product_demand(product: str, warehouse: str = "south", days: int = 14) -> dict:
+def forecast_product_demand(product: str, warehouse: str | None = "south", days: int | str = 14) -> dict:
     """Forecast daily demand for ONE product (name or SKU) at ONE warehouse for the next `days` days
     (1-90). Detects festivals like Diwali. Returns totals, average, the peak day and model accuracy."""
     try:
@@ -170,7 +206,7 @@ def forecast_product_demand(product: str, warehouse: str = "south", days: int = 
         wh = resolve_warehouse(warehouse) or "WH-SOUTH"
     except ResolveError as e:
         return _error("NOT_FOUND", str(e))
-    days = max(1, min(int(days), 90))
+    days = max(1, min(as_int(days, 14), 90))
     r = forecast_demand(ForecastRequest(sku=sku, warehouse_id=wh, horizon_days=days), get_erp())
     if isinstance(r, ToolError):
         return _error(r.code, r.message)
@@ -191,8 +227,8 @@ def forecast_product_demand(product: str, warehouse: str = "south", days: int = 
 
 
 @tool
-def check_stock_risks(warehouse: str | None = None, products: list[str] | None = None,
-                      category: str | None = None, days: int = 14) -> dict:
+def check_stock_risks(warehouse: str | None = None, products: list[str] | str | None = None,
+                      category: str | None = None, days: int | str = 14) -> dict:
     """Find products that will run out. Checks stock vs. forecast demand for the next `days` days
     (3-60) and recommends reorder quantities. Optional filters: warehouse ('south', 'north', 'east'
     or None for all), a list of product names, or a category ('dairy', 'snacks', ...).
@@ -200,11 +236,12 @@ def check_stock_risks(warehouse: str | None = None, products: list[str] | None =
     WATCH (order within 3 days)."""
     try:
         wh = resolve_warehouse(warehouse)
-        skus = [resolve_product(p) for p in products] if products else None
-        cat = resolve_category(category)
+        names = as_list(products)
+        skus = list(dict.fromkeys(resolve_product(p) for p in names)) if names else None
+        cat = resolve_category(category if category not in ("", "none", "null", "all") else None)
     except ResolveError as e:
         return _error("NOT_FOUND", str(e))
-    days = max(3, min(int(days), 60))
+    days = max(3, min(as_int(days, 14), 60))
     r = check_inventory(InventoryCheckRequest(warehouse_id=wh, skus=skus, category=cat, horizon_days=days),
                         get_erp(), get_wms())
     if isinstance(r, ToolError):

@@ -1,3 +1,4 @@
+
 """
 BasketBee - public API used by the frontend (M6).
 
@@ -13,6 +14,7 @@ BasketBee - public API used by the frontend (M6).
 import json
 import queue
 import threading
+import time
 from datetime import date, timedelta
 
 import pandas as pd
@@ -54,13 +56,37 @@ def set_supervisor(sup) -> None:
 
 
 def _friendly_error(exc: Exception) -> str:
+    """Turn LLM/provider failures into one clear sentence that says what to do."""
     text = f"{type(exc).__name__}: {exc}"
-    if any(w in text for w in ("ConnectError", "Connection refused", "ConnectionError", "11434")):
-        return (f"Can't reach the language model ({settings.llm_provider}: {settings.llm_model}). "
-                f"Start Ollama and try again.")
-    if "not found" in text.lower() and settings.llm_provider == "ollama":
-        return f"Ollama doesn't have the model '{settings.llm_model}'. Run: ollama pull {settings.llm_model}"
+    provider, model = settings.llm_provider, settings.llm_model
+    name = {"groq": "Groq", "openai": "OpenAI", "gemini": "Gemini", "ollama": "Ollama"}.get(provider, provider)
+    if type(exc).__name__ == "LLMConfigError":
+        return str(exc)
+    if any(w in text for w in ("AuthenticationError", "invalid_api_key", "Invalid API Key", "401")):
+        return f"{name} rejected the API key. Check the key in .env, then restart BasketBee."
+    if any(w in text for w in ("RateLimitError", "rate_limit", "429", "Too Many Requests")):
+        return f"{name}'s free rate limit was reached. Wait about a minute, then ask again."
+    if any(w in text for w in ("ConnectError", "Connection refused", "ConnectionError", "APIConnectionError",
+                               "11434", "getaddrinfo", "Timeout")):
+        if provider == "ollama":
+            return f"Can't reach Ollama ({model}). Open the Ollama app, then ask again."
+        return f"Can't reach {name}. Check the internet connection, then ask again."
+    if "bad_alloc" in text or "out of memory" in text.lower():
+        return "Not enough free memory to load the model. Close other apps or use a smaller model."
+    if any(w in text.lower() for w in ("not found", "notfound", "does not exist", "model_not_found",
+                                       "decommissioned")) and "model" in text.lower():
+        hint = " Try LLM_MODEL=openai/gpt-oss-120b." if provider == "groq" else ""
+        return f"{name} doesn't offer the model '{model}' (it may have been retired). Check LLM_MODEL in .env.{hint}"
     return f"Something went wrong while answering: {exc}"
+
+
+LLM_FATAL = ("Connect", "Connection refused", "11434", "AuthenticationError", "RateLimitError",
+             "LLMConfigError", "invalid_api_key", "bad_alloc", "Timeout")
+
+
+def is_llm_fatal(exc: Exception) -> bool:
+    """Errors that mean the model itself is unavailable (show them clearly, don't hide them)."""
+    return any(w in f"{type(exc).__name__}: {exc}" for w in LLM_FATAL)
 
 
 # ----- Chat -------------------------------------------------------------------
@@ -204,6 +230,37 @@ def audit_log(limit: int = Query(200, ge=1, le=2000), agent: str | None = None,
     return [{"id": a.id, "ts": a.ts.isoformat() if a.ts else None, "session_id": a.session_id,
              "agent": a.agent, "tool": a.tool, "input": a.input_json, "output": a.output_json,
              "latency_ms": a.latency_ms} for a in db.scalars(q)]
+
+
+# ----- Demo controls ---------------------------------------------------------------
+@router.post("/llm-check")
+def llm_check():
+    """Ask the model one tiny question: is it reachable, and how fast is it?"""
+    started = time.perf_counter()
+    try:
+        from backend.agents.llm import get_llm
+        reply = get_llm(temperature=0).invoke("Reply with just the word OK.")
+        return {"ok": True, "seconds": round(time.perf_counter() - started, 1),
+                "reply": str(reply.content)[:60], "model": f"{settings.llm_provider}:{settings.llm_model}"}
+    except Exception as exc:   # noqa: BLE001
+        return {"ok": False, "seconds": round(time.perf_counter() - started, 1),
+                "message": _friendly_error(exc), "model": f"{settings.llm_provider}:{settings.llm_model}"}
+
+
+@router.post("/demo/reset")
+def reset_demo(db: Session = Depends(get_db)):
+    """Restore the original seed data: clears reorders, approvals, purchase orders and the log."""
+    from backend.api.common import _outages
+    from backend.db.seed import seed
+    target = db.get_bind()
+    db.close()
+    try:
+        seed(target, verbose=False)
+    except Exception as exc:   # noqa: BLE001
+        raise api_error(500, "RESET_FAILED", f"Couldn't reset the data: {exc}")
+    for system in _outages:
+        _outages[system] = False
+    return {"ok": True, "message": "Demo data restored. All systems are back online."}
 
 
 # ----- Warm-up --------------------------------------------------------------------

@@ -1,3 +1,4 @@
+
 """
 BasketBee - frontend tests (Streamlit AppTest, no browser needed).
 
@@ -130,3 +131,18 @@ def test_activity_page_empty_state(fake_api):
     at.switch_page("views/activity.py")
     run(at)
     assert "Nothing here yet" in html_text(at)
+
+
+def test_status_page_toggles_an_outage(fake_api, monkeypatch):
+    calls = []
+    monkeypatch.setattr(api, "outages", lambda: {"erp": False, "wms": False, "tms": False})
+    monkeypatch.setattr(api, "set_outage", lambda s, d: calls.append((s, d)) or {})
+    monkeypatch.setattr(api, "health", lambda: {**HEALTH, "db": "ok", "systems": {"erp": "ok", "wms": "ok", "tms": "ok"}})
+    at = AppTest.from_file(APP)
+    run(at)
+    at.switch_page("views/status.py")
+    run(at)
+    assert "Enterprise systems" in html_text(at)
+    at.toggle(key="down-erp").set_value(True)
+    run(at)
+    assert calls == [("erp", True)]

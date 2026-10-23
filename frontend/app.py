@@ -1,3 +1,4 @@
+
 """
 BasketBee - the app (M6).
 
@@ -37,6 +38,8 @@ pages = {
                          url_path="approvals"),
     "activity": st.Page("views/activity.py", title="Activity log", icon=":material/history:",
                         url_path="activity"),
+    "status": st.Page("views/status.py", title="System status", icon=":material/settings_heart:",
+                      url_path="status"),
 }
 nav = st.navigation(list(pages.values()), position="hidden")
 
@@ -56,6 +59,8 @@ with st.sidebar:
     st.page_link(pages["stock"])
     st.page_link(pages["approvals"], label=f"Approvals ({n_pending})" if n_pending else "Approvals")
     st.page_link(pages["activity"])
+    downs = [s.upper() for s, d in (health or {}).get("systems", {}).items() if d == "down"]
+    st.page_link(pages["status"], label=f"System status ({', '.join(downs)} down)" if downs else "System status")
 
     business_day = date.fromisoformat(health["business_date"]) if health else date(2026, 10, 18)
     days_left = (date(2026, 11, 8) - business_day).days

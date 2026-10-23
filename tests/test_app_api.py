@@ -1,3 +1,4 @@
+
 """
 BasketBee - tests for the app API used by the frontend (Step 9).
 
@@ -68,7 +69,7 @@ def test_chat_stream_reports_llm_errors_politely(client, temp_db):
     finally:
         app_api.set_supervisor(None)
     assert events[-1]["type"] == "error"
-    assert "Start Ollama" in events[-1]["message"]
+    assert "Can't reach Ollama" in events[-1]["message"]
 
 
 def test_approvals_flow(client, scripted_bee):
@@ -113,3 +114,42 @@ def test_audit_log_records_the_chat(client, scripted_bee):
         _events(r)
     rows = client.get("/api/audit", params={"limit": 50}).json()
     assert any(r["session_id"] == "audit-me" and r["tool"] == "check_stock_risks" for r in rows)
+
+
+def test_reset_demo_restores_seed_data(client, scripted_bee, temp_db):
+    with client.stream("POST", "/api/chat/stream", json={"message": "What will run out in the south warehouse?"}) as r:
+        _events(r)
+    assert client.get("/api/approvals").json()
+    client.post("/admin/outages", json={"system": "erp", "down": True})
+
+    r = client.post("/api/demo/reset")
+    assert r.status_code == 200 and r.json()["ok"]
+    assert client.get("/api/approvals", params={"status": "all"}).json() == []
+    assert client.get("/admin/outages").json() == {"erp": False, "wms": False, "tms": False}
+    assert len(client.get("/erp/products").json()) == 60
+
+
+def test_llm_check_reports_problems_politely(client, monkeypatch):
+    import backend.agents.llm as llm_mod
+
+    class Down:
+        def invoke(self, *_):
+            raise ConnectionError("Connection refused")
+    monkeypatch.setattr(llm_mod, "get_llm", lambda **k: Down())
+    r = client.post("/api/llm-check").json()
+    assert r["ok"] is False and "Can't reach" in r["message"]
+
+
+@pytest.mark.parametrize("error,expected", [
+    (Exception("Error code: 401 - invalid_api_key"), "rejected the API key"),
+    (Exception("Error code: 429 - rate_limit_exceeded"), "rate limit"),
+    (ConnectionError("Connection refused"), "Can't reach"),
+    (Exception("llama-server: std::bad_alloc"), "Not enough free memory"),
+])
+def test_friendly_errors(error, expected):
+    assert expected in app_api._friendly_error(error)
+
+
+def test_retired_model_message():
+    err = Exception("Error code: 404 - The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.")
+    assert "doesn't offer the model" in app_api._friendly_error(err)

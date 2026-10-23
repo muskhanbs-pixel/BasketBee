@@ -1,3 +1,4 @@
+
 """
 BasketBee - tests for the Supervisor (M5), router, approvals and number verification.
 
@@ -183,3 +184,13 @@ def test_erp_down_keeps_recommendation_pending(temp_db, pending_rec):
         _outages["erp"] = False
     pending = approvals.list_recommendations(session_factory=temp_db)
     assert pending_rec["id"] in {r["id"] for r in pending}
+
+
+def test_agent_crash_does_not_crash_the_answer(temp_db):
+    class ExplodingLLM(ScriptedLLM):
+        def _generate(self, *a, **k):
+            raise ValueError("model produced garbage")
+    out = BasketBeeSupervisor(ExplodingLLM(messages=iter([])), session_factory=temp_db).ask(
+        "What will run out in the south warehouse?")
+    assert "hit a problem and was skipped" in out["answer"]
+    assert out["recommendations"] == []

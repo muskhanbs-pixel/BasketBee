@@ -1,3 +1,4 @@
+
 """Ask BasketBee - chat with the supervisor and its agents."""
 
 import base64
@@ -146,7 +147,8 @@ prompt = st.chat_input("Ask about stock, demand or reorders")
 prompt = prompt or st.session_state.pop("pending_question", None)
 
 if prompt:
-    messages.append({"role": "user", "text": prompt})
+    # The question is saved together with its answer (below), so an interrupted answer
+    # never leaves a lonely question in the history.
     with st.chat_message("user", avatar=":material/person:"):
         st.markdown(prompt)
 
@@ -165,6 +167,6 @@ if prompt:
         else:
             reply = reply or {"role": "assistant", "error": "The answer stopped unexpectedly. Try asking again."}
             status.update(label="Couldn't answer", state="error", expanded=False)
-        messages.append(reply)
+        messages.extend([{"role": "user", "text": prompt}, reply])
         render_answer(reply, len(messages) - 1)
     cache.recommendations.clear()

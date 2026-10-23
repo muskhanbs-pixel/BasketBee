@@ -1,3 +1,4 @@
+
 """
 BasketBee frontend - client for the BasketBee API.
 
@@ -91,6 +92,22 @@ def purchase_orders() -> list[dict]:
 
 def audit(limit: int = 300, agent: str | None = None) -> list[dict]:
     return _get("/api/audit", limit=limit, agent=agent)
+
+
+def outages() -> dict:
+    return _get("/admin/outages", timeout=5)
+
+
+def set_outage(system: str, down: bool) -> dict:
+    return _post("/admin/outages", {"system": system, "down": down}, timeout=10)
+
+
+def llm_check() -> dict:
+    return _post("/api/llm-check", {}, timeout=120)
+
+
+def reset_demo() -> dict:
+    return _post("/api/demo/reset", {}, timeout=120)
 
 
 def chat_stream(message: str, session_id: str) -> Iterator[dict]:

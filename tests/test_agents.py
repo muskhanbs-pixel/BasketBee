@@ -1,3 +1,4 @@
+
 """
 BasketBee - tests for the agent tools and the agent loop (Step 7).
 
@@ -165,3 +166,28 @@ def test_agent_rescues_text_tool_call():
     assert out["trace"][0]["tool"] == "find_products" and out["trace"][0]["ok"]
     assert "repair" in events and events[-1] == "answer"
     assert "Diya" in out["answer"]
+
+
+# ----- Forgiving arguments (seen with llama3.1:8b in the real app) -------------
+@pytest.mark.parametrize("value,expected", [
+    (["Ghee", "Toor Dal"], ["Ghee", "Toor Dal"]),
+    ("['Toor Dal', 'Cashew Nuts', 'Diya Oil Lamps']", ["Toor Dal", "Cashew Nuts", "Diya Oil Lamps"]),
+    ('["ghee", "dal"]', ["ghee", "dal"]),
+    ("ghee, toor dal", ["ghee", "toor dal"]),
+    ("ghee", ["ghee"]),
+    ("", None), ("null", None), (None, None), ("[]", None),
+])
+def test_as_list(value, expected):
+    from backend.agents.tools import as_list
+    assert as_list(value) == expected
+
+
+def test_risk_tool_accepts_list_written_as_text():
+    out = check_stock_risks.invoke({"products": "['Toor Dal', 'Cashew Nuts', 'Diya Oil Lamps']", "days": "21"})
+    assert "error" not in out
+    assert {i["product"] for i in out["items"]} >= {"Toor Dal", "Cashew Nuts", "Diya Oil Lamps"}
+
+
+def test_tool_days_as_odd_strings():
+    out = forecast_product_demand.invoke({"product": "ghee", "warehouse": "south", "days": "7.0"})
+    assert "error" not in out and len(out["weekly_totals"]) == 1
